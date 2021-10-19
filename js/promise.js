@@ -7,11 +7,11 @@ class MyPromise {
         this.errorHandler = emptyFn;
         this.finallyHandler = emptyFn;
 
-        _this.state = 'pending';
-        _this.result = '';
+        this._state = 'pending';
+        this._result = '';
 
         try {
-            executor.call(null, this.resolveHandler.bind(this), this.resolveHandler.bind(this));
+            executor.call(null, this.resolveHandler.bind(this), this.rejectHandler.bind(this));
         } catch (err) {
             this.errorHandler(err)
         } finally {
@@ -25,17 +25,18 @@ class MyPromise {
             data = cb(data);
         });
 
-        _this.state = 'fulfilled';
-        _this.result = data;
+        this._state = 'fulfilled';
+        this._result = data;
 
         this.finallyHandler();
     }
 
     rejectHandler(error) {
+        console.log(error);
         this.errorHandler(error);
 
-        _this.state = 'rejected';
-        _this.result = error;
+        this._state = 'rejected';
+        this._result = error;
 
         this.finallyHandler();
     }
@@ -54,22 +55,36 @@ class MyPromise {
     }
 
     all(arr) {
+        const results = [];
+
+        arr.forEach(async function(promise) {
+            let resultPromise = await promise;
+            if (resultPromise instanceof Error) return resultPromise;
+            results.push(resultPromise);
+        });
+
+        return results;
+        // выполняем каждый промис
+        // записываем его результат в массив
+        // возвращаем массив, если все в порядке
+        // возвращаем ошибку, если кто-то упал
 
     }
 
 
 }
 
-// const promise = new MyPromise((resolve, reject) => {
-//     setTimeout(() => {
-//         resolve('NgRx');
-//     }, 150);
-// });
-
-// promise
-//     .then(data => console.log('MyPromise: ', data.toUpperCase()))
-//     .then(title => console.log(title))
-//     .catch(err => console.log('MyPromise: ', err))
-//     .finally(() => console.log('Finally!'))
-
 module.exports = MyPromise;
+
+
+
+const promise = new MyPromise((resolve, reject) => {
+    setTimeout(() => {
+        reject();
+    }, 150);
+});
+
+promise
+    .then(data => console.log('MyPromise: ', data.toLowerCase()))
+    .catch(err => console.log('MyPromiseError: ', err))
+    .finally(() => console.log('Finally!'))
