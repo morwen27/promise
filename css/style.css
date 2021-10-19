@@ -1,0 +1,29 @@
+body {
+    font-family: 'Fira Code', sans-serif;
+    font-size: 18px;
+    color: #fff;
+    background: #000;
+}
+
+.wrapper {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: 1fr;
+    grid-gap: 25px;
+    margin: 50px 15px;
+}
+
+.box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 140px;
+    color: #11cc23;
+    border: 2px solid #fff;
+}
+
+.box.selected {
+    border-width: 5px;
+    border-color: #11cc23;
+}
