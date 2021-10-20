@@ -1,32 +1,32 @@
+function emptyFn(){};
+
 class MyPromise {
     constructor(executor) {
         this.callbacks = [];
 
-        this.errorHandler = function() {};
-        this.finallyHandler = function() {};
+        this.errorHandler = emptyFn;
+        this.finallyHandler = emptyFn;
 
         this._state = 'pending';
         this._result = null;
 
         try {
             executor.call(null, this.resolveHandler.bind(this), this.rejectHandler.bind(this));
-        } catch (err) {
-            this.errorHandler(err)
         } finally {
             this.finallyHandler();
         }
     }
 
-    static resolveHandler(data) {
+    resolveHandler(data) {
         this._state = 'fulfilled';
         this._result = data;
 
-        this.callbacks.forEach(cb => cb(this._result));
+        this.callbacks.forEach(cb => this._result = cb(this._result));
 
         this.finallyHandler();
     }
 
-    static rejectHandler(error) {
+    rejectHandler(error) {
         this._state = 'rejected';
         this._result = error;
 
@@ -34,18 +34,8 @@ class MyPromise {
         this.finallyHandler();
     }
 
-    then(cbResolve, cbReject) {
-        if (cbResolve === null) this.catch(cbReject);
-
-        this.callbacks.push(cbResolve);
-        return this;
-    }
-
-    catch (cb) {
-        this.errorHandler = cb;
-        return this;
-    } finally(cb) {
-        this.finallyHandler = cb;
+    then(cb) {   
+        this.callbacks.push(cb);
         return this;
     }
 
@@ -69,20 +59,17 @@ class MyPromise {
 
 }
 
-module.exports = MyPromise;
-
-
-
 const promise = new MyPromise((resolve, reject) => {
     setTimeout(() => {
-        resolve('1');
+        resolve('RERE');
     }, 150);
 });
 
 promise
-    .then(data => console.log('MyPromise: ', data))
-    // .then(data => console.log('MyPromise: ', +data + 1))
-    // .then(data => console.log('MyPromise: ', +data + 1))
-    // .then(data => console.log('MyPromise: ', +data + 1))
+    .then(data => {
+        console.log('MyPromise: ', data.toLowerCase());
+        return data;
+    })
+    .then(data => console.log('MyPromise: ', data.toUpperCase()))    
     .catch(error => console.log('MyPromiseError: ', error.message))
     .finally(() => console.log('Finally!'))
