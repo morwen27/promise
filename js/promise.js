@@ -21,7 +21,9 @@ class MyPromise {
         this._state = 'fulfilled';
         this._result = data;
 
-        this.callbacks.forEach(cb => this._result = cb(this._result));
+        this.callbacks.forEach(cb => {
+            this._result = cb(this._result)
+        });
 
         this.finallyHandler();
     }
@@ -37,6 +39,16 @@ class MyPromise {
     then(cb) {   
         this.callbacks.push(cb);
         return this;
+    }
+
+    catch(cb) {
+        this.errorHandler(this._result);
+        return cb;
+    }
+
+    finally(cb) {
+        this.finallyHandler(cb);
+        return cb;
     }
 
     // all(arr) {
