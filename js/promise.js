@@ -1,14 +1,12 @@
-function emptyFn() {};
-
 class MyPromise {
     constructor(executor) {
         this.callbacks = [];
 
-        this.errorHandler = emptyFn;
-        this.finallyHandler = emptyFn;
+        this.errorHandler = function() {};
+        this.finallyHandler = function() {};
 
         this._state = 'pending';
-        this._result = '';
+        this._result = null;
 
         try {
             executor.call(null, this.resolveHandler.bind(this), this.rejectHandler.bind(this));
@@ -17,32 +15,29 @@ class MyPromise {
         } finally {
             this.finallyHandler();
         }
-
     }
 
-    resolveHandler(data) {
-        this.callbacks.forEach(cb => {
-            data = cb(data);
-        });
-
+    static resolveHandler(data) {
         this._state = 'fulfilled';
         this._result = data;
 
+        this.callbacks.forEach(cb => cb(this._result));
+
         this.finallyHandler();
     }
 
-    rejectHandler(error) {
-        console.log(error);
-        this.errorHandler(error);
-
+    static rejectHandler(error) {
         this._state = 'rejected';
         this._result = error;
 
+        this.errorHandler(this._result);
         this.finallyHandler();
     }
 
-    then(cb) {
-        this.callbacks.push(cb);
+    then(cbResolve, cbReject) {
+        if (cbResolve === null) this.catch(cbReject);
+
+        this.callbacks.push(cbResolve);
         return this;
     }
 
@@ -54,22 +49,22 @@ class MyPromise {
         return this;
     }
 
-    all(arr) {
-        const results = [];
+    // all(arr) {
+    //     const results = [];
 
-        arr.forEach(async function(promise) {
-            let resultPromise = await promise;
-            if (resultPromise instanceof Error) return resultPromise;
-            results.push(resultPromise);
-        });
+    //     arr.forEach(async function(promise) {
+    //         let resultPromise = await promise;
+    //         if (resultPromise instanceof Error) return resultPromise;
+    //         results.push(resultPromise);
+    //     });
 
-        return results;
-        // выполняем каждый промис
-        // записываем его результат в массив
-        // возвращаем массив, если все в порядке
-        // возвращаем ошибку, если кто-то упал
+    //     return results;
+    //     // выполняем каждый промис
+    //     // записываем его результат в массив
+    //     // возвращаем массив, если все в порядке
+    //     // возвращаем ошибку, если кто-то упал
 
-    }
+    // }
 
 
 }
@@ -80,11 +75,14 @@ module.exports = MyPromise;
 
 const promise = new MyPromise((resolve, reject) => {
     setTimeout(() => {
-        reject();
+        resolve('1');
     }, 150);
 });
 
 promise
-    .then(data => console.log('MyPromise: ', data.toLowerCase()))
-    .catch(err => console.log('MyPromiseError: ', err))
+    .then(data => console.log('MyPromise: ', data))
+    // .then(data => console.log('MyPromise: ', +data + 1))
+    // .then(data => console.log('MyPromise: ', +data + 1))
+    // .then(data => console.log('MyPromise: ', +data + 1))
+    .catch(error => console.log('MyPromiseError: ', error.message))
     .finally(() => console.log('Finally!'))
