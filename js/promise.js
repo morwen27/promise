@@ -43,12 +43,12 @@ class MyPromise {
 
     catch(cb) {
         this.errorHandler(this._result);
-        return cb;
+        return this;
     }
 
     finally(cb) {
-        this.finallyHandler(cb);
-        return cb;
+        this.finallyHandler();
+        return this;
     }
 
     // all(arr) {
@@ -82,6 +82,13 @@ promise
         console.log('MyPromise: ', data.toLowerCase());
         return data;
     })
-    .then(data => console.log('MyPromise: ', data.toUpperCase()))    
+    .then(data => {
+        console.log('MyPromise: ', data.toUpperCase());
+        return data;
+    })
+    .then(data => {
+        console.log('MyPromise: ', data.toUpperCase()[0] + data.toLowerCase().slice(1));
+        return data;
+    })    
     .catch(error => console.log('MyPromiseError: ', error.message))
     .finally(() => console.log('Finally!'))
