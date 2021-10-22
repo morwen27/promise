@@ -51,9 +51,12 @@ class MyPromise {
         return this;
     }
 
-    static resolve(data) { // Где массив?
+    static resolve(data) {
         this._result = data;
-        return this;
+
+        const test = this;
+        console.log(new test());
+        return new test();
     }
 
     static all(iterable) {
@@ -66,10 +69,15 @@ class MyPromise {
             results[index] = resultPromise;
             counter++;
 
-            if (counter === iterable.length) this.resolve(results);
+            if (counter === iterable.length) {
+                console.log(results);
+                return this.resolve(results)
+            }
         });
     }
 }
+
+
 
 // const promise = new MyPromise((resolve, reject) => {
 //     setTimeout(() => {
@@ -100,3 +108,15 @@ MyPromise.all([
         new MyPromise(resolve => setTimeout(() => resolve(3), 1000)) // 3
     ])
     .then(data => console.log(data));
+
+
+// const promise = new Promise((resolve, reject) => {
+//     setTimeout(() => {
+//         resolve(this);
+//     }, 150);
+// });
+
+// promise
+//     .then(data => {
+//         console.log(data);
+//     })
