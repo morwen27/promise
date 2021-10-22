@@ -53,10 +53,9 @@ class MyPromise {
 
     static resolve(data) {
         this._result = data;
-
-        const test = this;
-        console.log(new test());
-        return new test();
+        return new MyPromise((resolve, reject) => {
+            resolve(this._result);
+        });
     }
 
     static all(iterable) {
@@ -69,10 +68,7 @@ class MyPromise {
             results[index] = resultPromise;
             counter++;
 
-            if (counter === iterable.length) {
-                console.log(results);
-                return this.resolve(results)
-            }
+            if (counter === iterable.length) return this.resolve(results)
         });
     }
 }
