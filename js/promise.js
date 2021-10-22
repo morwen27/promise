@@ -12,6 +12,8 @@ class MyPromise {
 
         try {
             executor.call(null, this.resolveHandler.bind(this), this.rejectHandler.bind(this));
+        } catch (error) {
+            this.errorHandler(error);
         } finally {
             this.finallyHandler();
         }
@@ -44,10 +46,10 @@ class MyPromise {
     }
 
     catch (cb) {
-        this.errorHandler(this._result);
+        this.errorHandler = cb;
         return this;
     } finally(cb) {
-        this.finallyHandler();
+        this.finallyHandler = cb;
         return this;
     }
 
@@ -98,12 +100,12 @@ class MyPromise {
 //     .finally(() => console.log('Finally!'))
 
 
-MyPromise.all([
-        new MyPromise(resolve => setTimeout(() => resolve(1), 3000)), // 1
-        new MyPromise(resolve => setTimeout(() => resolve(2), 2000)), // 2
-        new MyPromise(resolve => setTimeout(() => resolve(3), 1000)) // 3
-    ])
-    .then(data => console.log(data));
+// MyPromise.all([
+//         new MyPromise(resolve => setTimeout(() => resolve(1), 3000)), // 1
+//         new MyPromise(resolve => setTimeout(() => resolve(2), 2000)), // 2
+//         new MyPromise(resolve => setTimeout(() => resolve(3), 1000)) // 3
+//     ])
+//     .then(data => console.log(data));
 
 
 // const promise = new Promise((resolve, reject) => {
