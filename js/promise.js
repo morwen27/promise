@@ -12,8 +12,8 @@ class MyPromise {
 
         try {
             executor.call(null, this.resolveHandler.bind(this), this.rejectHandler.bind(this));
-        } catch (error) {
-            this.errorHandler(error);
+        } catch (err) {
+            this.errorHandler(err);
         } finally {
             this.finallyHandler();
         }
@@ -36,6 +36,8 @@ class MyPromise {
         this._state = 'rejected';
         this._result = error;
 
+        console.log('А тут мы упали и не знаем, что делать', this._state);
+
         this.errorHandler(this._result);
         this.finallyHandler();
     }
@@ -53,24 +55,21 @@ class MyPromise {
         return this;
     }
 
-    static resolve(data) {
-        this._result = data;
-        return new MyPromise((resolve, reject) => {
-            resolve(this._result);
-        });
-    }
-
     static all(iterable) {
-        let results = [];
-        let counter = 0;
+        return new MyPromise((resolve, reject) => {
+            let results = [];
+            let counter = 0;
 
-        iterable.forEach(async(promise, index) => {
-            let resultPromise = await promise;
-            if (resultPromise instanceof Error) return resultPromise;
-            results[index] = resultPromise;
-            counter++;
+            iterable.forEach(async(promise, index) => {
+                let resultPromise = await promise;
+                console.log(promise._state);
+                results[index] = resultPromise;
+                counter++;
 
-            if (counter === iterable.length) return this.resolve(results)
+                console.log(results);
+
+                if (counter === iterable.length) resolve(results);
+            });
         });
     }
 }
@@ -79,7 +78,7 @@ class MyPromise {
 
 // const promise = new MyPromise((resolve, reject) => {
 //     setTimeout(() => {
-//         resolve('RERE');
+//         reject('RERE');
 //     }, 150);
 // });
 
@@ -96,25 +95,14 @@ class MyPromise {
 //         console.log('MyPromise: ', data.toUpperCase()[0] + data.toLowerCase().slice(1));
 //         return data;
 //     })
-//     .catch(error => console.log('MyPromiseError: ', error.message))
+//     .catch(error => console.log('MyPromiseError: ', error))
 //     .finally(() => console.log('Finally!'))
 
 
-// MyPromise.all([
-//         new MyPromise(resolve => setTimeout(() => resolve(1), 3000)), // 1
-//         new MyPromise(resolve => setTimeout(() => resolve(2), 2000)), // 2
-//         new MyPromise(resolve => setTimeout(() => resolve(3), 1000)) // 3
-//     ])
-//     .then(data => console.log(data));
-
-
-// const promise = new Promise((resolve, reject) => {
-//     setTimeout(() => {
-//         resolve(this);
-//     }, 150);
-// });
-
-// promise
-//     .then(data => {
-//         console.log(data);
-//     })
+MyPromise.all([
+        new MyPromise(resolve => setTimeout(() => resolve(1), 3000)), // 1
+        new MyPromise((resolve, reject) => setTimeout(() => reject(new Error("Ошибка!")), 2000)), // 2
+        new MyPromise(resolve => setTimeout(() => resolve(3), 1000)) // 3
+    ])
+    .then(data => console.log(data))
+    .catch(error => console.log(error));
