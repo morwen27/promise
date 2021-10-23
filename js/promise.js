@@ -36,8 +36,6 @@ class MyPromise {
         this._state = 'rejected';
         this._result = error;
 
-        console.log('А тут мы упали и не знаем, что делать', this._state);
-
         this.errorHandler(this._result);
         this.finallyHandler();
     }
@@ -61,42 +59,41 @@ class MyPromise {
             let counter = 0;
 
             iterable.forEach(async(promise, index) => {
-                let resultPromise = await promise;
-                console.log(promise._state);
+                let resultPromise = await promise.catch(error => {
+                    reject(error);
+                });
                 results[index] = resultPromise;
                 counter++;
 
-                console.log(results);
-
                 if (counter === iterable.length) resolve(results);
             });
-        });
+        }).catch(error => error);
     }
 }
 
 
 
-// const promise = new MyPromise((resolve, reject) => {
-//     setTimeout(() => {
-//         reject('RERE');
-//     }, 150);
-// });
+const promise = new MyPromise((resolve, reject) => {
+    setTimeout(() => {
+        resolve('RERE');
+    }, 150);
+});
 
-// promise
-//     .then(data => {
-//         console.log('MyPromise: ', data.toLowerCase());
-//         return data;
-//     })
-//     .then(data => {
-//         console.log('MyPromise: ', data.toUpperCase());
-//         return data;
-//     })
-//     .then(data => {
-//         console.log('MyPromise: ', data.toUpperCase()[0] + data.toLowerCase().slice(1));
-//         return data;
-//     })
-//     .catch(error => console.log('MyPromiseError: ', error))
-//     .finally(() => console.log('Finally!'))
+promise
+    .then(data => {
+        console.log('MyPromise: ', data.toLowerCase());
+        return data;
+    })
+    .then(data => {
+        console.log('MyPromise: ', data.toUpperCase());
+        return data;
+    })
+    .then(data => {
+        console.log('MyPromise: ', data.toUpperCase()[0] + data.toLowerCase().slice(1));
+        return data;
+    })
+    .catch(error => console.log('MyPromiseError: ', error))
+    .finally(() => console.log('Finally!'))
 
 
 MyPromise.all([
