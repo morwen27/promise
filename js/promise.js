@@ -59,9 +59,7 @@ class MyPromise {
             let counter = 0;
 
             iterable.forEach(async(promise, index) => {
-                let resultPromise = await promise.catch(error => {
-                    reject(error);
-                });
+                let resultPromise = await promise.catch(error => reject(error));
                 results[index] = resultPromise;
                 counter++;
 
