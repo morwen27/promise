@@ -7,7 +7,12 @@ class MyPromise {
         this.errorHandler = emptyFn;
         this.finallyHandler = emptyFn;
 
-        this._state = 'pending';
+        this._statuses = {
+            pending: 'PENDING',
+            fulfilled: 'FULFILLED',
+            rejected: 'REJECTED'
+        };
+        this._state = this._statuses.pending;
         this._result = null;
 
         try {
@@ -20,7 +25,7 @@ class MyPromise {
     }
 
     resolveHandler(data) {
-        this._state = 'fulfilled';
+        this._state = this._statuses.fulfilled;
         this._result = data;
 
         if (this.callbacks.length !== 0) {
@@ -33,7 +38,7 @@ class MyPromise {
     }
 
     rejectHandler(error) {
-        this._state = 'rejected';
+        this._state = this._statuses.rejected;
         this._result = error;
 
         this.errorHandler(this._result);
@@ -68,17 +73,49 @@ class MyPromise {
         }).catch(error => error);
     }
 
+    static allSettled(iterable) {
+        return new MyPromise((resolve, reject) => {
+            let results = [];
+            let counter = 0;
+
+            iterable.forEach(async(promise, index) => {
+                await promise
+                    .then(data => {
+                        const result = {
+                            status: promise._state,
+                            value: data,
+                        }
+                        results[index] = result;
+                        counter++;
+                    })
+                    .catch(error => {
+                        const result = {
+                            status: promise._state,
+                            reason: error,
+                        };
+                        results[index] = result;
+                        counter++;
+                    });
+
+                if (counter === iterable.length) resolve(results);
+            });
+        }).catch(error => error);
+    }
+
     static race(iterable) {
         return new MyPromise((resolve, reject) => {
             let results = [];
 
-            iterable.forEach(async(promise, index) => {
-                let resultPromise = await promise.catch(error => {
-                    if (results.length === 0) reject(error);
-                });
-                results.push(resultPromise);
-
-                if (results.length === 1) resolve(results[0]);
+            iterable.forEach(async promise => {
+                await promise
+                    .then(result => {
+                        results.push(result);
+                        if (results.length === 1) resolve(result)
+                    })
+                    .catch(error => {
+                        results.push(error);
+                        if (results.length === 1) reject(error)
+                    });
             });
         }).catch(error => error);
     }
@@ -109,13 +146,13 @@ class MyPromise {
 //     .finally(() => console.log('Finally!'))
 
 
-// MyPromise.all([
-//         new MyPromise(resolve => setTimeout(() => resolve(1), 3000)), // 1
-//         new MyPromise((resolve, reject) => setTimeout(() => reject(new Error("Ошибка из all!")), 2000)), // 2
-//         new MyPromise(resolve => setTimeout(() => resolve(3), 1000)) // 3
-//     ])
-//     .then(data => console.log(data))
-//     .catch(error => console.log(error));
+MyPromise.allSettled([
+        new MyPromise(resolve => setTimeout(() => resolve(1), 3000)), // 1
+        new MyPromise((resolve, reject) => setTimeout(() => reject(new Error("Ошибка из all!")), 2000)), // 2
+        new MyPromise(resolve => setTimeout(() => resolve(3), 1000)) // 3
+    ])
+    .then(data => console.log(data))
+    .catch(error => console.log(error));
 
 // MyPromise.all([
 //         new MyPromise(resolve => setTimeout(() => resolve(1), 3000)), // 1
@@ -130,6 +167,13 @@ class MyPromise {
 //         new MyPromise(resolve => setTimeout(() => resolve(1), 3000)), // 1
 //         new MyPromise((resolve, reject) => setTimeout(() => reject(new Error("Ошибка из race!")), 2000)), // 2
 //         new MyPromise(resolve => setTimeout(() => resolve(3), 1000)) // 3
+//     ])
+//     .then(data => console.log(data))
+//     .catch(error => console.log(error));
+
+// MyPromise.race([
+//         new MyPromise((resolve, reject) => setTimeout(() => reject(new Error("Ошибка из race!")), 1000)), // 2
+//         new MyPromise(resolve => setTimeout(() => resolve(3), 2000)) // 3
 //     ])
 //     .then(data => console.log(data))
 //     .catch(error => console.log(error));
